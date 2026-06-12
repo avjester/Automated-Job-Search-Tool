@@ -1,0 +1,50 @@
+name: Weekly Newsfeed
+
+on:
+  schedule:
+    - cron: '0 15 * * 1'  # Monday 8AM PDT (UTC-7)
+  workflow_dispatch:        # lets you trigger it manually to test
+
+permissions:
+  contents: read
+
+jobs:
+  send-newsfeed:
+    runs-on: ubuntu-latest
+    # Search-heavy runs take a while, but a hung stream shouldn't ride the
+    # 6-hour default.
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run newsfeed script
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          # Optional: the real candidate profile (who they are, target roles,
+          # home metro, watchlist). Kept as a secret so personal job-search
+          # details never live in the repo; falls back to a generic example.
+          CANDIDATE_PROFILE: ${{ secrets.CANDIDATE_PROFILE }}
+        run: python scripts/newsfeed.py
+
+      # Keep a copy of the generated report even if the email send fails,
+      # and as a browsable archive of past newsletters.
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newsletter-${{ github.run_number }}
+          path: newsletter.html
+          if-no-files-found: ignore
+          retention-days: 90
