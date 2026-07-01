@@ -59,7 +59,10 @@ def sanitize_html(html):
 # this shape — a "WHO THE CANDIDATE IS" section (background, target roles and
 # verticals, home metro area, remote preference) followed by a "WATCHLIST
 # COMPANIES" section ending in the company list — because the prompt text
-# that follows it refers back to both.
+# that follows it refers back to both. It may optionally add "BODY OF WORK"
+# and "VOICE RULES" sections after the watchlist; the prompt uses those to
+# generate builder-post seeds and to keep proposed hooks in the candidate's
+# register, and falls back to sane defaults if they are absent.
 DEFAULT_PROFILE = """WHO THE CANDIDATE IS
 
 The candidate has 12+ years of experience building and leading risk functions at high-growth technology companies. They are looking for Director, Senior Director, or VP level GRC or Technology Risk or Chief Risk leadership roles at technology-forward companies in regulated verticals. The filter prioritizes regulatory surface over industry vertical: fintech, crypto, healthtech, AI, enterprise SaaS with government contracts, life sciences, financial services, consumer platforms with significant privacy exposure, and defense-adjacent technology all fit the profile. Within these verticals, companies that have received enforcement actions, consent orders, or significant regulatory attention are higher-priority targets, but any company in a regulated vertical is in scope.
@@ -70,7 +73,19 @@ The candidate is remote-based in the San Francisco Bay Area; treat that as their
 
 WATCHLIST COMPANIES
 
-Stripe, Plaid, Block, Robinhood, Oscar Health, Databricks, Anthropic, OpenAI."""
+Stripe, Plaid, Block, Robinhood, Oscar Health, Databricks, Anthropic, OpenAI.
+
+---
+
+BODY OF WORK
+
+The candidate builds rather than only audits: they maintain in-house quantitative risk tooling grounded in FAIR, write their own runbooks, and prototype automation. Their recurring points of view, which their LinkedIn content returns to, include risk as an engineering discipline, quantification over qualitative heat maps, and second-line functions that drive business decisions rather than produce paperwork. Use this section to surface builder-post opportunities — news items that intersect this body of work — and to keep proposed hooks in the candidate's actual register.
+
+---
+
+VOICE RULES
+
+When proposing post hooks, match how the candidate writes: open with a position rather than a topic, close on a line the reader can react to, keep the register dry and senior. Avoid clickbait question openers, the "it isn't X, it's Y" construction, listicles assembled from loosely related items, hashtag stacks, and heavy em-dash use."""
 
 
 # Approximate published Opus 4.8 rates ($5/$25 per MTok), in USD per token.
@@ -117,8 +132,11 @@ def log_usage(totals):
 
 # Upper bound on pause_turn continuations (the server-side tool loop pauses
 # roughly every 10 tool iterations); a guard against a runaway loop, not a
-# budget — search spend is capped by max_uses on the web_search tool.
-MAX_PAUSE_CONTINUATIONS = 8
+# budget — search spend is capped by max_uses on the web_search tool. Raised
+# from 8 to 12 alongside the higher search cap: more searches plus per-posting
+# fetches plus content stake-testing means more tool iterations, and the run
+# must have room to finish before this guard trips.
+MAX_PAUSE_CONTINUATIONS = 12
 
 # Full-scan retries when the streaming connection dies mid-read ("peer closed
 # connection", read timeout). The SDK's max_retries doesn't cover these — it
@@ -152,6 +170,8 @@ Only cite sources from original publications — official regulatory filings, co
 {profile}
 
 This watchlist is a starting point, not a boundary. The search is profile-driven, not list-driven: any tech-forward company in a regulated vertical is in scope — fintech, payments, lending, banking-as-a-service, crypto, insurtech, healthtech and digital health, telehealth, AI labs and AI infrastructure, enterprise SaaS with government contracts or FedRAMP exposure, life sciences technology, financial services, consumer platforms with significant privacy exposure, proptech, defense-adjacent technology — regardless of whether it appears above. Companies with recent enforcement actions or regulatory attention are higher-priority, but regulated-vertical membership alone is sufficient to include a company. Expect most of the best findings each week to come from companies NOT on the watchlist.
+
+The profile above may include BODY OF WORK and VOICE RULES sections. Use BODY OF WORK to spot builder-post opportunities — news items that connect to something the candidate has actually built — and to keep every proposed hook in the candidate's register. Whenever you propose a post angle or opening line anywhere in this report, follow the VOICE RULES. If those sections are absent from the profile, fall back to: open with a position rather than a topic, close on something the reader can react to, and keep the register dry and senior.
 
 ---
 
@@ -227,6 +247,12 @@ Developments in quantitative risk (FAIR, CRQ, Hubbard, ERQI), GRC Engineering mo
 
 ---
 
+SEARCH BUDGET
+
+Job-search categories (0 through 3) have first claim on the search budget; never starve role discovery or live-verification to fund content work. Content categories (4 through 7) should be efficient on discovery — most content items can be assessed from a single search plus the source itself. Reserve a small share of the budget, roughly ten searches, for stake-testing: confirming that the contrarian position behind a High-strength stake actually holds against the evidence before you recommend a post built on it. Spend that stake-testing budget only on the two or three finalist post candidates, not on every content item.
+
+---
+
 OUTPUT FORMAT
 
 Begin your response with the opening HTML tag. Do not narrate your search process, describe your methodology, summarize what you are about to do, or include any preamble or transitional language before the HTML output. The report starts with the HTML — nothing before it.
@@ -246,7 +272,10 @@ For each item in Categories 0 through 3, provide:
 
 For each item in Categories 4 through 7, provide:
 - What happened: one to two sentences, factual and specific.
-- Why it matters to the candidate: one to two sentences on the content angle.
+- Consensus take: one line stating the obvious read — what most GRC commentators will say about this item this week. Naming the crowded position is what lets the candidate avoid it.
+- The stake: a single first-line position the candidate could open a post with. It must take a side a competent CISO would either strongly agree with or bristle at, on its own, before reading further. It should cut against or beneath the consensus take above, and be defensible from the standpoint of someone who has built and run a second-line function. State a claim, not a topic; do not announce what the post will be about. Ground the claim in a specific fact from the source — a finding, a number, a clause — not in generic commentary.
+- Stake strength: rate High, Medium, or Low based on whether a real, defensible disagreement is available here, or whether this is merely a timely topic with no genuine counter-position. Be honest; a Low is useful signal, not a failure. Drop the item from the report entirely if the only available stake restates the consensus — a newsworthy item with no defensible angle is not a content opportunity for this candidate.
+- Builder bridge (include only when it genuinely applies): if this item intersects something in the candidate's BODY OF WORK, state in one line how it could anchor a builder post, with the news as the hook and the candidate's own artifact as the payload. Omit this field when there is no real connection; never force one.
 - Signal type: Content opportunity, Job search signal, or Both.
 - Source: direct link to the original article or filing.
 
@@ -256,7 +285,15 @@ If a hiring window temperature assessment in Category 2 is based on a single sig
 If a job posting in Category 0 cannot be confirmed as currently live and accepting applications by opening the posting page, exclude it entirely. Do not list unverified or stale roles even with a caveat — in this category a wrong listing is worse than an omission.
 If two or more sources report the same event with conflicting details, include the item but note the conflict: "Conflicting reports — see sources." and provide both links.
 If web search returns no results for a specific target company in a given category, do not infer absence of news. Note it as: "No confirmed results found for [company] this week — coverage may be incomplete."
-At the end of the report, include a final section titled THIS WEEK'S RECOMMENDED POST. Select the single strongest LinkedIn content opportunity from the week's scan. Specify whether it is a thinky post (industry POV, analytical) or a human/leadership post (warmer, story-driven). Provide a one-sentence opening claim that the candidate could use or adapt as the post's opening line. Do not write the full post — just the angle, the type, and the opening hook.
+At the end of the report, include a final section titled THIS WEEK'S RECOMMENDED POSTS. From the week's content items, select the three strongest LinkedIn post candidates and rank them, strongest first. Rank by stake strength — the depth of defensible disagreement available — NOT by how big the underlying story is. A smaller story with a sharp, contrarian, well-grounded position outranks a major headline that carries only the obvious take. If fewer than three items clear Medium stake strength, present only those that do and say so, rather than padding with weak candidates.
+
+For each candidate, provide:
+- Register: thinky (industry POV, analytical), builder (a first-person account of something the candidate built or solved, anchored to the news item), or human/leadership (warmer, story-driven). Choose builder whenever the item has a Builder bridge and the candidate's own work is the strongest available payload; builder is the highest-converting register and must not be passed over when a genuine bridge exists.
+- Opening line: a single first-line claim the candidate could use or adapt. It must state a position, survive truncation, and let a CISO agree or bristle without expanding. No topic announcements, no "here is why X matters" framing.
+- The cut: one line naming the consensus take this post cuts against, so the candidate can see at a glance why it will stand out instead of blending in.
+- The evidence: the one specific fact, finding, or artifact that makes the position defensible.
+
+Do not write the full posts — give only the register, opening line, the cut, and the evidence for each of the three.
 
 FORMAT AND MARKUP
 
@@ -316,7 +353,7 @@ Do not use markdown. No inline JavaScript, no images, no tables. Keep nesting sh
                 tools=[
                     # max_uses caps search spend at PRICE_WEB_SEARCH * max_uses
                     # per run. Fetches are billed only as input tokens.
-                    {"type": "web_search_20260209", "name": "web_search", "max_uses": 100},
+                    {"type": "web_search_20260209", "name": "web_search", "max_uses": 130},
                     {"type": "web_fetch_20260209", "name": "web_fetch"},
                 ],
                 messages=messages,
