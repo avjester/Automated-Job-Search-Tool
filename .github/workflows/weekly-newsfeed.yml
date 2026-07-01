@@ -2,7 +2,7 @@ name: Weekly Newsfeed
 
 on:
   schedule:
-    - cron: '0 15 * * 1'  # Monday 8AM PDT (UTC-7)
+    - cron: '38 10 * * 1'  # Monday 3:38AM PDT (UTC-7)
   workflow_dispatch:        # lets you trigger it manually to test
 
 permissions:
