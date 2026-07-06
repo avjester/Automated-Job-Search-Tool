@@ -171,7 +171,7 @@ The profile above may include a BODY OF WORK section. Use it to spot builder-pos
 
 SCAN CATEGORIES AND PRIORITY ORDER
 
-Category 0 and Categories 1 through 3 are job search signals and take priority over Categories 4 through 7, which are content opportunities. Within each tier, items involving named target companies rank above general market developments.
+Category 0 and Categories 1 and 2 are job search signals and take priority over Categories 3 through 6, which are content opportunities. Within each tier, items involving named target companies rank above general market developments.
 
 CATEGORY 0 — OPEN ROLES (highest priority, run first)
 
@@ -179,7 +179,7 @@ ROLE TITLES IN SCOPE. Search for Director, Senior Director, VP, Head of, and Chi
 
 DISCOVERY STRATEGY. The search is profile-driven: most qualifying roles each week will be at companies not on the watchlist, so do not simply iterate the watchlist company by company. Run these discovery passes, in this order:
 
-1. Watchlist and signal-driven companies: check careers pages of watchlist companies, plus any company surfaced this week in Categories 1 through 3 (enforcement action, consent order, IPO filing or announcement, late-stage funding, new CISO or CRO in seat). A company that just hired a security or risk executive, took an enforcement action, or filed an S-1 is the single strongest predictor of an open risk-leadership search.
+1. Watchlist and signal-driven companies: check careers pages of watchlist companies, plus any company surfaced this week in Categories 1 and 2 (enforcement action, consent order, IPO filing or announcement, late-stage funding, new CISO or CRO in seat). A company that just hired a security or risk executive, took an enforcement action, or filed an S-1 is the single strongest predictor of an open risk-leadership search.
 2. ATS-wide title sweeps: run site-restricted web searches for the role titles above directly across the major applicant-tracking-system domains — boards.greenhouse.io, jobs.lever.co, jobs.ashbyhq.com, myworkdayjobs.com, jobs.smartrecruiters.com, apply.workable.com — for example: site:boards.greenhouse.io "Director" "Technology Risk". This is the highest-yield way to find companies the candidate has never heard of. Filter the hits to companies matching the regulated-vertical profile.
 3. Job aggregators for discovery: LinkedIn Jobs, Built In (the candidate's home metro and remote), Wellfound, and Welcome to the Jungle/Otta. Aggregators are for discovery only — always follow through to the underlying company posting and cite that as the Source, never the aggregator page.
 4. IPO pipeline: scan recent S-1 filings on SEC EDGAR and credible IPO-pipeline coverage for regulated-vertical companies approaching public markets within 18 months — these are high-signal hiring windows where GRC investment is most active — and check those companies' careers pages.
@@ -207,17 +207,13 @@ For every confirmed role, note its location and work arrangement (remote, hybrid
 
 CATEGORY 1 — REGULATORY ACTIONS
 
-Enforcement orders, consent decrees, new rulemaking, or significant regulatory attention affecting any tech-forward company. Relevant regulators include OCC, CFPB, SEC, FTC, FCC, FDA, FDIC, FinCEN, state-level regulators, and major international regulators, notably in Europe.
+Enforcement orders, consent decrees, new rulemaking, or significant regulatory attention affecting any tech-forward company. Relevant regulators include OCC, CFPB, SEC, FTC, FCC, FDA, FDIC, FinCEN, state-level regulators, and major international regulators, notably in Europe. This category also covers crypto and digital-asset regulation — GENIUS Act developments, stablecoin and market-structure rulemaking, and enforcement touching crypto or digital-asset firms — treated as regulatory actions here rather than as a separate category.
 
 CATEGORY 2 — ORG SIGNALS
 
 Layoffs, RIFs, restructuring, IPOs, late-stage funding rounds, bank charter applications, or significant M&A activity at tech-forward companies in regulated spaces. For each item, assign a hiring window temperature: Hot (company is likely actively building the function — e.g., post-enforcement action, post-funding, new CISO in seat), Warm (conditions are favorable but timing is uncertain), Cold (company is mid-restructure or in a hiring freeze), or Avoid (signals suggest the candidate should not prioritize this target right now, with a brief reason).
 
-CATEGORY 3 — CRYPTO REGULATION
-
-GENIUS Act developments and broader crypto regulatory activity.
-
-CATEGORY 4 — MAJOR INDUSTRY REPORTS AND DATA RELEASES
+CATEGORY 3 — MAJOR INDUSTRY REPORTS AND DATA RELEASES
 
 Scan broadly across major industry data releases and the technology and cybersecurity think tanks, research centers, and standards bodies listed below. Include a new report, framework update, dataset, or publication only when it carries a clear angle relevant to Governance, Risk, and Compliance or AI Governance — skip purely technical or operational releases with no GRC, risk-quantification, board-governance, regulatory, or AI-governance relevance.
 
@@ -227,15 +223,15 @@ Think tanks and research centers: Center for Security and Emerging Technology (C
 
 Standards bodies and frameworks: NIST Cybersecurity Framework (CSF), NIST Trustworthy & Responsible AI Resource Center, ISO 27001, CIS Critical Security Controls, ISACA, MITRE Corporation, OWASP, PCI Security Standards Council (PCI SSC), HITRUST. Flag new releases, framework revisions, draft guidance, or notable commentary from these bodies when they bear on GRC or AI governance.
 
-CATEGORY 5 — INCIDENTS AND GOVERNANCE FAILURES
+CATEGORY 4 — INCIDENTS AND GOVERNANCE FAILURES
 
 Significant breaches, technology failures, or governance failures at tech-forward companies.
 
-CATEGORY 6 — AI GOVERNANCE
+CATEGORY 5 — AI GOVERNANCE
 
 EU AI Act implementation, US regulatory activity on AI, enterprise AI deployment failures, agentic AI risk incidents, AI agent governance frameworks. Prioritize items involving agentic AI risk failures, enterprise AI deployment governance gaps, and regulatory action touching AI deployment in financial services or healthtech specifically. These intersect directly with the candidate's positioning as an AI-native GRC leader.
 
-CATEGORY 7 — GRC METHODOLOGY AND ORGANIZATIONAL DESIGN
+CATEGORY 6 — GRC METHODOLOGY AND ORGANIZATIONAL DESIGN
 
 Developments in quantitative risk (FAIR, CRQ, Hubbard, ERQI), GRC Engineering movement activity, board and audit committee governance, SEC cybersecurity disclosure rules, CISO mandate and org design trends, supply chain and third-party risk.
 
@@ -243,7 +239,7 @@ Developments in quantitative risk (FAIR, CRQ, Hubbard, ERQI), GRC Engineering mo
 
 SEARCH BUDGET
 
-Job-search categories (0 through 3) have first claim on the search budget; never starve role discovery or live-verification to fund content work. Content categories (4 through 7) should be efficient on discovery — most content items can be assessed from a single search plus the source itself. Reserve a small share of the budget, roughly ten searches, for stake-testing: confirming that the contrarian position behind a High-strength stake actually holds against the evidence before you recommend a post built on it. Spend that stake-testing budget only on the two or three finalist post candidates, not on every content item.
+Job-search categories (0 through 2) have first claim on the search budget; never starve role discovery or live-verification to fund content work. Content categories (3 through 6) should be efficient on discovery — most content items can be assessed from a single search plus the source itself. Reserve a small share of the budget, roughly ten searches, for stake-testing: confirming that the contrarian position behind a High-strength stake actually holds against the evidence before you recommend a post built on it. Spend that stake-testing budget only on the two or three finalist post candidates, not on every content item.
 
 ---
 
@@ -252,7 +248,7 @@ OUTPUT FORMAT
 Begin your response with the opening HTML tag. Do not narrate your search process, describe your methodology, summarize what you are about to do, or include any preamble or transitional language before the HTML output. The report starts with the HTML — nothing before it.
 At the top of the report, flag the three highest-priority items across all categories. Rank by: (1) named target company involvement, (2) open role or job search signal over content opportunity, (3) regulatory action over general market development.
 
-For each item in Categories 0 through 3, provide:
+For each item in Categories 0 through 2, provide:
 - What happened: one to two sentences, factual and specific.
 - Why it matters to the candidate: one to two sentences on the job search or content angle.
 - Recommended action: a specific next step and, where relevant, a time window. 
@@ -264,7 +260,7 @@ For each item in Categories 0 through 3, provide:
 - Compensation (Category 0 only): the pay range exactly as stated on the posting you fetched, including what it covers (base, on-target earnings, bonus, equity) if specified — e.g. "$220K–$265K base + equity." Many US roles disclose this under pay-transparency laws. If the posting shows no range, write "Not disclosed on posting"; you may add a market estimate ONLY if you find a dated, citable public source (e.g. the company's other current postings, a recent Levels.fyi or comparable data point) and label it clearly as an estimate with that source. Never invent or guess a number from general knowledge.
 - Source: direct link to the original article, filing, or job posting.
 
-For each item in Categories 4 through 7, provide:
+For each item in Categories 3 through 6, provide:
 - What happened: one to two sentences, factual and specific.
 - Consensus take: one line stating the obvious read — what most GRC commentators will say about this item this week. Naming the crowded position is what lets the candidate avoid it.
 - The stake: the contrarian position available here, stated as a claim in neutral third-person analyst language — one to two sentences naming the position, the consensus it cuts against, and the specific sourced fact (a finding, a number, a clause) that supports it. It must take a side a competent CISO would either strongly agree with or bristle at, and be defensible from the standpoint of someone who has built and run a second-line function. Do NOT write it as a post's first line and do NOT imitate the candidate's writing voice.
