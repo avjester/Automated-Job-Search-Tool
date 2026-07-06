@@ -59,10 +59,10 @@ def sanitize_html(html):
 # this shape — a "WHO THE CANDIDATE IS" section (background, target roles and
 # verticals, home metro area, remote preference) followed by a "WATCHLIST
 # COMPANIES" section ending in the company list — because the prompt text
-# that follows it refers back to both. It may optionally add "BODY OF WORK"
-# and "VOICE RULES" sections after the watchlist; the prompt uses those to
-# generate builder-post seeds and to keep proposed hooks in the candidate's
-# register, and falls back to sane defaults if they are absent.
+# that follows it refers back to both. It may optionally add a "BODY OF WORK"
+# section after the watchlist; the prompt uses it to surface builder-post
+# seeds (news that intersects what the candidate has built) and skips that
+# seeding if it is absent.
 DEFAULT_PROFILE = """WHO THE CANDIDATE IS
 
 The candidate has 12+ years of experience building and leading risk functions at high-growth technology companies. They are looking for Director, Senior Director, or VP level GRC or Technology Risk or Chief Risk leadership roles at technology-forward companies in regulated verticals. The filter prioritizes regulatory surface over industry vertical: fintech, crypto, healthtech, AI, enterprise SaaS with government contracts, life sciences, financial services, consumer platforms with significant privacy exposure, and defense-adjacent technology all fit the profile. Within these verticals, companies that have received enforcement actions, consent orders, or significant regulatory attention are higher-priority targets, but any company in a regulated vertical is in scope.
@@ -79,13 +79,7 @@ Stripe, Plaid, Block, Robinhood, Oscar Health, Databricks, Anthropic, OpenAI.
 
 BODY OF WORK
 
-The candidate builds rather than only audits: they maintain in-house quantitative risk tooling grounded in FAIR, write their own runbooks, and prototype automation. Their recurring points of view, which their LinkedIn content returns to, include risk as an engineering discipline, quantification over qualitative heat maps, and second-line functions that drive business decisions rather than produce paperwork. Use this section to surface builder-post opportunities — news items that intersect this body of work — and to keep proposed hooks in the candidate's actual register.
-
----
-
-VOICE RULES
-
-When proposing post hooks, match how the candidate writes: open with a position rather than a topic, close on a line the reader can react to, keep the register dry and senior. Avoid clickbait question openers, the "it isn't X, it's Y" construction, listicles assembled from loosely related items, hashtag stacks, and heavy em-dash use."""
+The candidate builds rather than only audits: they maintain in-house quantitative risk tooling grounded in FAIR, write their own runbooks, and prototype automation. Their recurring points of view, which their LinkedIn content returns to, include risk as an engineering discipline, quantification over qualitative heat maps, and second-line functions that drive business decisions rather than produce paperwork. Use this section to surface builder-post opportunities — news items that intersect this body of work."""
 
 
 # Approximate published Opus 4.8 rates ($5/$25 per MTok), in USD per token.
@@ -171,7 +165,7 @@ Only cite sources from original publications — official regulatory filings, co
 
 This watchlist is a starting point, not a boundary. The search is profile-driven, not list-driven: any tech-forward company in a regulated vertical is in scope — fintech, payments, lending, banking-as-a-service, crypto, insurtech, healthtech and digital health, telehealth, AI labs and AI infrastructure, enterprise SaaS with government contracts or FedRAMP exposure, life sciences technology, financial services, consumer platforms with significant privacy exposure, proptech, defense-adjacent technology — regardless of whether it appears above. Companies with recent enforcement actions or regulatory attention are higher-priority, but regulated-vertical membership alone is sufficient to include a company. Expect most of the best findings each week to come from companies NOT on the watchlist.
 
-The profile above may include BODY OF WORK and VOICE RULES sections. Use BODY OF WORK to spot builder-post opportunities — news items that connect to something the candidate has actually built — and to keep every proposed hook in the candidate's register. Whenever you propose a post angle or opening line anywhere in this report, follow the VOICE RULES. If those sections are absent from the profile, fall back to: open with a position rather than a topic, close on something the reader can react to, and keep the register dry and senior.
+The profile above may include a BODY OF WORK section. Use it to spot builder-post opportunities — news items that connect to something the candidate has actually built and could anchor a post. It is a discovery aid only: this report names and analyzes positions in neutral, third-person analyst language and never drafts the candidate's post copy or imitates their writing voice. If the section is absent from the profile, skip builder-post seeding.
 
 ---
 
@@ -273,9 +267,9 @@ For each item in Categories 0 through 3, provide:
 For each item in Categories 4 through 7, provide:
 - What happened: one to two sentences, factual and specific.
 - Consensus take: one line stating the obvious read — what most GRC commentators will say about this item this week. Naming the crowded position is what lets the candidate avoid it.
-- The stake: a single first-line position the candidate could open a post with. It must take a side a competent CISO would either strongly agree with or bristle at, on its own, before reading further. It should cut against or beneath the consensus take above, and be defensible from the standpoint of someone who has built and run a second-line function. State a claim, not a topic; do not announce what the post will be about. Ground the claim in a specific fact from the source — a finding, a number, a clause — not in generic commentary.
+- The stake: the contrarian position available here, stated as a claim in neutral third-person analyst language — one to two sentences naming the position, the consensus it cuts against, and the specific sourced fact (a finding, a number, a clause) that supports it. It must take a side a competent CISO would either strongly agree with or bristle at, and be defensible from the standpoint of someone who has built and run a second-line function. Do NOT write it as a post's first line and do NOT imitate the candidate's writing voice.
 - Stake strength: rate High, Medium, or Low based on whether a real, defensible disagreement is available here, or whether this is merely a timely topic with no genuine counter-position. Be honest; a Low is useful signal, not a failure. Drop the item from the report entirely if the only available stake restates the consensus — a newsworthy item with no defensible angle is not a content opportunity for this candidate.
-- Builder bridge (include only when it genuinely applies): if this item intersects something in the candidate's BODY OF WORK, state in one line how it could anchor a builder post, with the news as the hook and the candidate's own artifact as the payload. Omit this field when there is no real connection; never force one.
+- Builder bridge (include only when it genuinely applies): if this item intersects something in the candidate's BODY OF WORK, state in one line how it could anchor a builder post, with the news as the hook and the candidate's own built work as the payload. Omit this field when there is no real connection; never force one.
 - Signal type: Content opportunity, Job search signal, or Both.
 - Source: direct link to the original article or filing.
 
@@ -289,11 +283,11 @@ At the end of the report, include a final section titled THIS WEEK'S RECOMMENDED
 
 For each candidate, provide:
 - Register: thinky (industry POV, analytical), builder (a first-person account of something the candidate built or solved, anchored to the news item), or human/leadership (warmer, story-driven). Choose builder whenever the item has a Builder bridge and the candidate's own work is the strongest available payload; builder is the highest-converting register and must not be passed over when a genuine bridge exists.
-- Opening line: a single first-line claim the candidate could use or adapt. It must state a position, survive truncation, and let a CISO agree or bristle without expanding. No topic announcements, no "here is why X matters" framing.
+- The position: the contrarian claim this post would advance, in neutral third-person analyst language — the side it takes, stated so a CISO would either agree or bristle. Do NOT draft it as a post's first line and do NOT imitate the candidate's writing voice.
 - The cut: one line naming the consensus take this post cuts against, so the candidate can see at a glance why it will stand out instead of blending in.
-- The evidence: the one specific fact, finding, or artifact that makes the position defensible.
+- The evidence: the one specific fact, finding, or piece of the candidate's own work that makes the position defensible.
 
-Do not write the full posts — give only the register, opening line, the cut, and the evidence for each of the three.
+Do not write the full posts — give only the register, the position, the cut, and the evidence for each of the three.
 
 FORMAT AND MARKUP
 
@@ -531,20 +525,55 @@ def send_email(body):
         server.login(sender, app_password)
         server.sendmail(sender, sender, msg.as_string())
 
+
+# A generation run is expensive, so a transient SMTP failure shouldn't silently
+# lose it. We retry the send rather than archiving the report anywhere, because
+# this repo is public and the report renders the CANDIDATE_PROFILE secret.
+SEND_MAX_ATTEMPTS = 3
+# Delay before each retry, indexed by the attempt that just failed. With
+# SEND_MAX_ATTEMPTS == 3 only the first two rungs (30s, 120s) are reached; 300s
+# is the next rung if the attempt count is ever raised.
+SEND_BACKOFF_SECONDS = (30, 120, 300)
+
+
+def send_with_retry(body):
+    """Send the report with bounded, backed-off retries on transient failures.
+
+    Retries on transient network/SMTP errors only. Logs the attempt number and
+    the exception's class name — never the exception message (it can echo the
+    recipient address or server response), the recipient address, or any part
+    of the report body, because workflow logs on a public repo are public. On
+    final failure raise a generic, content-free error and accept the lost run.
+    """
+    for attempt in range(1, SEND_MAX_ATTEMPTS + 1):
+        try:
+            send_email(body)
+            return
+        except (smtplib.SMTPException, OSError, TimeoutError) as exc:
+            if attempt == SEND_MAX_ATTEMPTS:
+                raise RuntimeError(
+                    f"Send failed after {SEND_MAX_ATTEMPTS} attempts; "
+                    "report discarded."
+                ) from None
+            delay = SEND_BACKOFF_SECONDS[attempt - 1]
+            print(
+                f"Send attempt {attempt} of {SEND_MAX_ATTEMPTS} failed "
+                f"({type(exc).__name__}); retrying in {delay}s.",
+                file=sys.stderr,
+            )
+            time.sleep(delay)
+
+
 if __name__ == "__main__":
     try:
         report_fragment = get_newsfeed()
         date_str = datetime.now(timezone.utc).strftime("%B %d, %Y")
         newsfeed = build_html_email(report_fragment, date_str)
-        # Persist the styled email before attempting the send: the GitHub Action
-        # uploads this file as an artifact, so an SMTP failure after a
-        # successful (paid) generation doesn't lose the report, and the artifact
-        # is a faithful preview of what landed in the inbox.
-        report_path = os.environ.get("REPORT_PATH", "newsletter.html")
-        with open(report_path, "w", encoding="utf-8") as f:
-            f.write(newsfeed)
-        print(f"Report saved to {report_path}.")
-        send_email(newsfeed)
+        # INVARIANT: this repo is public. Report content must never reach any
+        # publicly readable surface — no uploaded run outputs, no workflow logs,
+        # no committed files. A paid run is protected by retrying the send, not
+        # by writing the report anywhere durable. Do not add persistence here.
+        send_with_retry(newsfeed)
     except Exception as exc:
         # Exit non-zero so the GitHub Action surfaces the failure instead of
         # reporting a green run after a bad or missing send.

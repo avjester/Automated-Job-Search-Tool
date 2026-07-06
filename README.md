@@ -15,11 +15,11 @@ Monday it asks Claude (with live web search and page fetching) to scan for:
   GRC methodology developments worth a LinkedIn post. Each is scored for whether
   a defensible contrarian stake exists (items with only the consensus take are
   dropped), and the report ends with the three strongest post candidates ranked
-  by stake strength, each with an opening line, the consensus it cuts against,
+  by stake strength, each with the position, the consensus it cuts against,
   and the evidence behind it
 
-The result is sanitized, wrapped in a trusted email shell, archived as a
-workflow artifact, and emailed via Gmail.
+The result is sanitized, wrapped in a trusted email shell, and emailed via
+Gmail.
 
 ## Setup
 
@@ -48,11 +48,10 @@ A custom profile must keep the same shape as the example: a
 `WHO THE CANDIDATE IS` section, then `---`, then a `WATCHLIST COMPANIES`
 section ending in the company list, because the surrounding prompt refers back
 to both (including "the candidate's home metro area" for location tiering). It
-may optionally add `BODY OF WORK` and `VOICE RULES` sections after the
-watchlist: the prompt uses `BODY OF WORK` to surface builder-post seeds (news
-that intersects what the candidate has built) and `VOICE RULES` to keep proposed
-post hooks in the candidate's register. Both are optional; the prompt falls back
-to sane defaults when they are absent.
+may optionally add a `BODY OF WORK` section after the watchlist: the prompt
+uses it to surface builder-post seeds (news that intersects what the candidate
+has built). It is optional; the prompt simply skips builder-post seeding when
+it is absent.
 
 ## Design notes
 
@@ -68,5 +67,7 @@ to sane defaults when they are absent.
   per-run token/cost logging in the Action output.
 - **Failure handling**: streaming (avoids the 10-minute non-streaming
   timeout), `pause_turn` continuation, full-scan retries on dropped streams,
-  truncation detection, and the styled report is saved as an artifact before
-  the SMTP send so a mail failure never loses a paid run.
+  truncation detection, and a bounded SMTP retry (3 attempts, exponential
+  backoff) so a transient mail failure doesn't lose a paid run. The repo is
+  public, so a generated report never leaves the runner except via that
+  email — nothing is uploaded, logged, or committed.

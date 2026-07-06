@@ -37,14 +37,3 @@ jobs:
           # details never live in the repo; falls back to a generic example.
           CANDIDATE_PROFILE: ${{ secrets.CANDIDATE_PROFILE }}
         run: python scripts/newsfeed.py
-
-      # Keep a copy of the generated report even if the email send fails,
-      # and as a browsable archive of past newsletters.
-      - name: Upload report artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: newsletter-${{ github.run_number }}
-          path: newsletter.html
-          if-no-files-found: ignore
-          retention-days: 90
