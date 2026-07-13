@@ -436,64 +436,87 @@ Do not use markdown. No inline JavaScript, no images, no tables. Keep nesting sh
         raise ValueError("Report was empty after sanitization; nothing to send.")
     return report
 
-# Dark theme: black/charcoal surfaces, forest-green accents. The model emits
-# only the sanitized body fragment; this trusted shell supplies all styling.
-# Two layers of defense against client quirks: critical colors are set inline
-# on the wrapper (survive even where a client drops <style>), and the richer
-# accents/pills come from the <style> block (applied where supported — Apple
-# Mail fully, Gmail web/app broadly).
+# Dark, flat "sage" theme matching the shared design system. Five-color palette:
+# bg #0f120d, surface #1d231c, accent/sage #7d9b83, text #e6e4db, strong #ffffff,
+# plus the one sanctioned semantic color, danger #cf8f83 (used only by the
+# "Avoid" hiring flag). Every other shade here is a precomputed blend of those —
+# no new hues.
+#
+# The palette is applied as literal hex, NOT as CSS custom properties: :root/
+# var() are unsupported in Outlook (Word engine) and unreliable in Gmail, so the
+# email keeps its robust two-layer approach — critical colors set inline on the
+# wrapper (survive even where a client drops <style>) and the rest from this
+# trusted <style> block (Apple Mail fully, Gmail web/app broadly). The design
+# system's token/var() mechanism governs the web apps; here the same values are
+# hardcoded so the rendered look still matches the reference (vibe-shelf). Flat
+# only: no gradients, no shadows — separation comes from borders and surface
+# contrast (bg vs surface), per the design rules.
+#
+# Fonts: Space Grotesk (display: masthead, headings, tier/label lines) and Inter
+# (body and all UI) are named in the font stacks with system fallbacks. The email
+# makes NO external font request — the whole newsletter avoids outbound calls
+# from the message (no beacons/leaks), and clients widely strip webfonts anyway —
+# so the typefaces render where a client already has them and fall back cleanly
+# otherwise.
 EMAIL_STYLE = """
   :root { color-scheme: dark; supported-color-schemes: dark; }
-  body { margin: 0; padding: 0; background: #0f1211; -webkit-text-size-adjust: 100%; }
-  .wrap { background: #0f1211; padding: 24px 12px; }
+  body { margin: 0; padding: 0; background: #0f120d; -webkit-text-size-adjust: 100%; }
+  .wrap { background: #0f120d; padding: 24px 12px; }
   .email {
     max-width: 680px; margin: 0 auto;
-    background: #1b201e; border: 1px solid #2c3431; border-radius: 12px;
+    background: #0f120d; border: 1px solid #303b31; border-radius: 12px;
     padding: 4px 26px 14px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: #e7eae6; line-height: 1.55; font-size: 15px;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #e6e4db; line-height: 1.55; font-size: 15px;
   }
-  .masthead { padding: 22px 0 14px; border-bottom: 2px solid #2f8f57; margin-bottom: 8px; }
-  .masthead .title { font-size: 20px; font-weight: 700; color: #f4f6f3; letter-spacing: -0.01em; }
-  .masthead .title .accent { color: #6fce95; }
-  .masthead .date { font-size: 12px; color: #8a958f; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+  .masthead { padding: 22px 0 14px; border-bottom: 2px solid #7d9b83; margin-bottom: 8px; }
+  .masthead .title { font-family: "Space Grotesk", "Inter", system-ui, sans-serif; font-size: 20px; font-weight: 700; color: #ffffff; letter-spacing: -0.01em; }
+  .masthead .title .accent { color: #7d9b83; }
+  .masthead .date { font-size: 12px; color: #909089; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
   .email h2 {
+    font-family: "Space Grotesk", "Inter", system-ui, sans-serif;
     font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
-    color: #7ed3a2; border-left: 4px solid #2f8f57; padding: 7px 0 7px 12px;
+    color: #7d9b83; border-left: 4px solid #7d9b83; padding: 7px 0 7px 12px;
     margin: 34px 0 14px;
-    background: linear-gradient(90deg, rgba(47,143,87,0.16), rgba(47,143,87,0));
-    border-radius: 0 6px 6px 0;
   }
-  .email h3 { font-size: 16px; font-weight: 650; color: #f4f6f3; margin: 0 0 7px; }
+  .email h3 { font-family: "Space Grotesk", "Inter", system-ui, sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; margin: 0 0 7px; }
   .email h3.tier {
-    font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: #6fce95;
-    margin: 22px 0 12px; padding-bottom: 6px; border-bottom: 1px solid #2c3431;
+    font-family: "Space Grotesk", "Inter", system-ui, sans-serif;
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: #7d9b83;
+    margin: 22px 0 12px; padding-bottom: 6px; border-bottom: 1px solid #303b31;
   }
   .email p { margin: 7px 0; }
-  .email strong { color: #aebbb3; font-weight: 600; }
-  .email a { color: #6fce95; text-decoration: none; border-bottom: 1px solid rgba(111,206,149,0.4); }
+  .email strong { color: #aeaea6; font-weight: 600; }
+  .email a { color: #7d9b83; text-decoration: none; border-bottom: 1px solid #415143; }
   .email ul, .email ol { margin: 7px 0; padding-left: 20px; }
   .email li { margin: 4px 0; }
   .item {
-    background: #222a27; border: 1px solid #2f3a36; border-radius: 8px;
+    background: #1d231c; border: 1px solid #303b31; border-radius: 8px;
     padding: 14px 16px; margin: 0 0 14px;
   }
   .highlights {
-    background: linear-gradient(135deg, rgba(47,143,87,0.20), rgba(47,143,87,0.04));
-    border: 1px solid #2f8f57; border-radius: 10px; padding: 16px 18px; margin: 16px 0 24px;
+    background: #1d231c;
+    border: 1px solid #7d9b83; border-radius: 12px; padding: 16px 18px; margin: 16px 0 24px;
   }
-  .highlights h3 { color: #9be0b6; }
+  .highlights h3 { color: #ffffff; }
   .pill {
     display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
     padding: 2px 10px; border-radius: 999px; border: 1px solid; line-height: 1.5;
-    background: #222a27;
+    font-family: "Inter", system-ui, sans-serif;
+    background: #1d231c;
   }
-  .pill-signal { color: #7ed3a2; border-color: #2f8f57; background: rgba(47,143,87,0.16); }
-  .temp-hot { color: #ff9b73; border-color: #d4633a; background: rgba(212,99,58,0.16); }
-  .temp-warm { color: #ffce8b; border-color: #c79438; background: rgba(199,148,56,0.16); }
-  .temp-cold { color: #8fb8d6; border-color: #4f7fa3; background: rgba(79,127,163,0.16); }
-  .temp-avoid { color: #ff8a8a; border-color: #c0494b; background: rgba(192,73,75,0.18); }
-  .footer { margin-top: 26px; padding-top: 14px; border-top: 1px solid #2c3431; color: #7c8580; font-size: 12px; }
+  /* Signal type is a neutral category tag, not a warning: it folds into the sage
+     accent (quiet, outlined). */
+  .pill-signal { color: #cdd8cf; border-color: #415143; background: #2c362c; }
+  /* Hiring-window ramp, palette-only and ordered by desirability so the color
+     still reads at a glance without introducing new hues: Hot = strongest
+     positive (solid sage), Warm = quiet sage, Cold = neutral surface, and Avoid
+     is the sole use of the semantic danger color. */
+  .temp-hot { color: #0f120d; border-color: #7d9b83; background: #7d9b83; }
+  .temp-warm { color: #cdd8cf; border-color: #415143; background: #2c362c; }
+  .temp-cold { color: #909089; border-color: #303b31; background: #1d231c; }
+  .temp-avoid { color: #cf8f83; border-color: #cf8f83; background: #1d231c; }
+  .footer { margin-top: 26px; padding-top: 14px; border-top: 1px solid #303b31; color: #909089; font-size: 12px; }
 """
 
 
@@ -505,11 +528,12 @@ def build_html_email(report_fragment, date_str):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0f120d">
 <style>{EMAIL_STYLE}</style>
 </head>
-<body style="background:#0f1211;color:#e7eae6;">
-<div class="wrap" style="background:#0f1211;">
-<div class="email" style="background:#1b201e;color:#e7eae6;">
+<body style="background:#0f120d;color:#e6e4db;">
+<div class="wrap" style="background:#0f120d;">
+<div class="email" style="background:#0f120d;color:#e6e4db;">
 <div class="masthead">
 <div class="title">Weekly Tech Intel <span class="accent">Newsfeed</span></div>
 <div class="date">{date_str}</div>
