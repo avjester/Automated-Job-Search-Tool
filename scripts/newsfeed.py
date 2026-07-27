@@ -73,7 +73,7 @@ The candidate is remote-based in the San Francisco Bay Area; treat that as their
 
 WATCHLIST COMPANIES
 
-Stripe, Plaid, Block, Robinhood, Oscar Health, Databricks, Anthropic, OpenAI.
+Stripe, Plaid, Block, Robinhood, Oscar Health, Databricks, Anthropic, OpenAI, Uber.
 
 ---
 
