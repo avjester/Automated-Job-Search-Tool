@@ -156,8 +156,14 @@ This watchlist is a starting point, not a boundary. The search is profile-driven
 ---
 
 OPEN ROLES SCAN
-
 ROLE TITLES IN SCOPE. Search for Senior, Director, Senior Director, VP, SVP, and Head of level roles across the full family of titles this function goes by, not just the literal string "Risk Management": Risk Management, Operational Risk, Enterprise Risk (ERM), Non-Financial Risk, Business Risk, Operational Resilience, and second-line Risk Oversight. At startups and growth-stage companies, "Head of Risk" or "Head of X Risk" is typically Director-to-VP equivalent — treat it as in scope.
+
+
+HOME REGIONS. The candidate has two home regions with different acceptable arrangements, not one home metro area:
+- Chicago, IL metro: onsite, hybrid, or remote roles based here all count as a location match.
+- EU/UK: the candidate has a second home in Milan, Italy, but this is not a metro they can commute to daily — only fully remote roles based in or open to the EU/UK count as a location match here. An onsite or hybrid role physically in Milan or elsewhere in the EU/UK does NOT match this region; treat it like any other out-of-area onsite role.
+- A role fully remote with no geographic restriction (e.g. "remote — US" when the candidate is US-based, or unrestricted global remote) also counts as a location match regardless of company location.
+Wherever this prompt says "home region(s)" below, it means this definition.
 
 DISCOVERY STRATEGY. The search is profile-driven: most qualifying roles each week will be at companies not on the watchlist, so do not simply iterate the watchlist company by company. Run these discovery passes, in this order:
 
