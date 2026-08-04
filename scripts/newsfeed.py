@@ -57,9 +57,11 @@ def sanitize_html(html):
 # the CANDIDATE_PROFILE environment variable (a GitHub Actions secret) so
 # personal details never live in the repository. A custom profile must keep
 # this shape — a "WHO THE CANDIDATE IS" section (background, target roles and
-# verticals, home metro area, remote preference) followed by a "WATCHLIST
-# COMPANIES" section ending in the company list — because the prompt text
-# that follows it refers back to both.
+# verticals, home region(s), remote/hybrid/onsite preference per region)
+# followed by a "WATCHLIST COMPANIES" section ending in the company list —
+# because the prompt text that follows it refers back to both. A profile may
+# describe more than one home region with different acceptable arrangements
+# per region (see the HOME REGIONS block in the prompt below).
 DEFAULT_PROFILE = """WHO THE CANDIDATE IS
 
 The candidate has 10+ years of experience in Risk Management, spanning Operational Risk and Enterprise Risk (ERM) functions at large organizations. They are looking for Director, Senior Director, or VP level Risk Management, Operational Risk, or Enterprise Risk leadership roles. Target verticals are function-first rather than regulation-driven: financial services, consumer goods, technology, and travel/hospitality all fit the profile equally.
@@ -118,7 +120,7 @@ def log_usage(totals):
 # Upper bound on pause_turn continuations (the server-side tool loop pauses
 # roughly every 10 tool iterations); a guard against a runaway loop, not a
 # budget — search spend is capped by max_uses on the web_search tool. Left at
-# the original 9-category value: watchlist checks (up to 15 companies), an
+# the original 9-category value: watchlist checks (up to 32 companies), an
 # ATS-wide sweep across six job-board domains, aggregator checks, and a live
 # web_fetch verification per candidate role can still add up to more tool
 # iterations than the search cap alone suggests, so this guard keeps its
@@ -168,15 +170,15 @@ DISCOVERY STRATEGY. The search is profile-driven: most qualifying roles each wee
 
 1. Watchlist companies: check the careers pages of the watchlist companies above for openings matching the role titles in scope.
 2. ATS-wide title sweeps: run site-restricted web searches for the role titles above directly across the major applicant-tracking-system domains — boards.greenhouse.io, jobs.lever.co, jobs.ashbyhq.com, myworkdayjobs.com, jobs.smartrecruiters.com, apply.workable.com — for example: site:boards.greenhouse.io "Director" "Operational Risk". This is the highest-yield way to find companies the candidate has never heard of. Filter the hits to companies matching the candidate's target verticals.
-3. Job aggregators for discovery: LinkedIn Jobs, Built In (the candidate's home metro and remote), Wellfound, and Welcome to the Jungle/Otta. Aggregators are for discovery only — always follow through to the underlying company posting and cite that as the Source, never the aggregator page.
+3. Job aggregators for discovery: LinkedIn Jobs, Built In Chicago and remote, Wellfound, and Welcome to the Jungle/Otta for EU/UK-remote openings. Aggregators are for discovery only — always follow through to the underlying company posting and cite that as the Source, never the aggregator page.
 4. IPO pipeline: scan recent S-1 filings on SEC EDGAR and credible IPO-pipeline coverage for companies in the candidate's target verticals approaching public markets within 18 months — these are high-signal hiring windows where Risk Management investment is most active — and check those companies' careers pages.
 
 Aim for breadth of companies over exhaustive depth on any one company. A weekly report that surfaces 8 to 15 verified roles across many companies is more useful than 3 roles from the watchlist plus an exhausted search budget.
 
 PRESENT ROLES IN TWO TIERS. Search broadly, but do not present the results as one flat list — breadth is valuable for discovery but creates noise when every role is shown with equal weight. Split the confirmed roles into two labeled sub-sections, strongest first within each:
 
-- "Strong fits": roles where title/function, seniority (Senior, Director, Senior Director, VP, SVP, or Head of level), AND vertical all clearly match the candidate's profile, and the location is the candidate's home metro area or fully remote. These are the roles they should look at first.
-- "Broader — worth a look": real, verified, currently-live roles that are a stretch on one dimension — seniority slightly off, vertical adjacent rather than core, or location out-of-area with an unclear or onsite arrangement. Include these for discovery value, but cap this tier at the 8 strongest; if more than 8 qualify, keep the 8 best fits to the candidate's profile and drop the rest rather than padding the list.
+- "Strong fits": roles where title/function, seniority (Senior, Director, Senior Director, VP, SVP, or Head of level), AND vertical all clearly match the candidate's profile, and the location matches one of the candidate's home regions as defined above (Chicago metro in any arrangement, or fully remote EU/UK, or unrestricted remote). These are the roles they should look at first.
+- "Broader — worth a look": real, verified, currently-live roles that are a stretch on one dimension — seniority slightly off, vertical adjacent rather than core, or location outside both home regions with an unclear or onsite arrangement (including onsite/hybrid roles physically in Milan or elsewhere in the EU/UK, which do not satisfy the EU/UK home region on their own). Include these for discovery value, but cap this tier at the 8 strongest; if more than 8 qualify, keep the 8 best fits to the candidate's profile and drop the rest rather than padding the list.
 
 Do not relax the liveness/verification rules for either tier — a role must be fetched and confirmed live to appear in either. Tiering is about ranking what you found, never about lowering the bar for what counts as verified. If a role is a genuine strong fit, it goes in "Strong fits" even if it is the only role this week.
 
@@ -184,13 +186,15 @@ There is no recency window on this scan — roles are governed by whether they a
 
 Every posting you include must be currently live and open to applications. Search results and search-engine snippets routinely surface roles that have already been filled or closed, so a search hit is not sufficient evidence that a role is open. Before including any role, open the posting page itself with web_fetch and confirm from the fetched content that it is still accepting applications. A role you did not fetch does not go in the report.
 
-A page that returns successfully is NOT proof the role is live. Closed postings very frequently still "work" but silently redirect to the company's default careers homepage, a job-search index, or a generic "open positions" listing, while the original link continues to resolve. You must confirm that the final page you land on actually displays that exact role — its specific title and description, with an active apply control. If the link instead lands on a careers homepage, a job-search or "open positions" index, a search results page, or a "job not found" / "this position is no longer available" page, the role is dead — exclude it. The link you put in the Source field must point to that live, role-specific detail page, not to a redirect target or a careers landing page.
+A page that returns successfully is NOT proof the role is live. Closed postings very frequently still "work" but silently redirect to the company's default careers homepage, a job-search index, or a generic "open positions" listing, while the original link continues to resolve. Some companies instead serve a branded error page at the dead URL — their normal site header, navigation, and styling intact, with an illustration and message like "Oops, let's fix this" or "Job not found," rather than a plain HTTP error or an obvious redirect. This is just as dead as any other broken link — do not treat a page that merely looks polished and on-brand as evidence the role exists; a company's design system stays consistent whether the specific page behind it is a real job or an error state. You must confirm that the final page you land on actually displays that exact role — its specific title and description, with an active apply control. If the link instead lands on a careers homepage, a job-search or "open positions" index, a search results page, a branded or unbranded error page, or a "job not found" / "this position is no longer available" page, the role is dead — exclude it. The link you put in the Source field must point to that live, role-specific detail page, not to a redirect target, error page, or careers landing page.
 
-Reject the posting — do not list it — if any of the following are true: the page does not load or returns an error; the link redirects to or lands on a generic careers page, job-search index, or listing rather than the specific role's detail page; the final page does not display that exact role's title and description with an active apply control; the page states the role is closed, filled, paused, on hold, expired, or "no longer accepting applications"; the listing shows no posting or last-refreshed date; or the posting date is more than 30 days before today. When in doubt, exclude rather than guess: an omitted role is fine, a dead role is the failure mode to avoid.
+Grounding check before including any role: you must be able to point to the exact sentence(s) in the content you fetched — not the URL, not the search snippet, not what a posting at this company usually looks like — that state the role's title and show an active apply control. If you cannot identify that specific fetched text, do not include the role, and do not fill in plausible-sounding details (compensation bands, location list, posting date) from general knowledge of what this company's postings typically look like. Every field you report for a role — title, compensation, locations, posting date — must come from content you actually fetched for that specific posting, not from inference about the company or the role type.
+
+Reject the posting — do not list it — if any of the following are true: the page does not load or returns an error; the link redirects to or lands on a generic careers page, job-search index, or listing rather than the specific role's detail page; the page is a branded or unbranded error/not-found page, even one styled consistently with the rest of the company's site; the final page does not display that exact role's title and description with an active apply control; the page states the role is closed, filled, paused, on hold, expired, or "no longer accepting applications"; the listing shows no posting or last-refreshed date; or the posting date is more than 30 days before today. When in doubt, exclude rather than guess: an omitted role is fine, a dead role is the failure mode to avoid.
 
 For each confirmed role, provide the role title, company, the posting or last-refreshed date exactly as it appears on the page, and a direct link to the role-specific posting itself (not a search results page, careers homepage, or job-aggregator listing). While you have the posting open to verify it is live, also capture the stated compensation range if one is present — US postings frequently disclose it under pay-transparency laws — and report it exactly as written. If the company is in IPO preparation or publicly known to be approaching IPO within 18 months, flag this prominently — it is a high-priority hiring signal. If you cannot confirm a single live role this week, output: "Nothing confirmed this week."
 
-For every confirmed role, note its location and work arrangement (remote, hybrid, or onsite) as stated on the posting. If the role's primary location is outside the candidate's home metro area, additionally flag the company's current work-location posture: whether it has recently announced or enforced a significant Return-to-Office (RTO) mandate, or whether it is genuinely remote-friendly. Base this on dated, verifiable sources — the posting's own remote/location terms, a company announcement, or recent news coverage — and say so briefly if you cannot confirm either way. This flag is informational only: do NOT exclude, downrank, or filter out an otherwise relevant out-of-area role because of an RTO push or because the work arrangement is unclear. The candidate still wants to see these roles; the flag simply tells them what they would be walking into. Roles based in the candidate's home metro area, or explicitly advertised as fully remote, do not need the RTO research.
+For every confirmed role, note its location and work arrangement (remote, hybrid, or onsite) as stated on the posting. If the role does not match one of the candidate's home regions as defined above — this includes an onsite or hybrid role physically located in Milan or elsewhere in the EU/UK, since only fully remote roles satisfy that region — additionally flag the company's current work-location posture: whether it has recently announced or enforced a significant Return-to-Office (RTO) mandate, or whether it is genuinely remote-friendly. Base this on dated, verifiable sources — the posting's own remote/location terms, a company announcement, or recent news coverage — and say so briefly if you cannot confirm either way. This flag is informational only: do NOT exclude, downrank, or filter out an otherwise relevant out-of-region role because of an RTO push or because the work arrangement is unclear. The candidate still wants to see these roles; the flag simply tells them what they would be walking into. Roles matching one of the candidate's home regions do not need the RTO research.
 
 ---
 
@@ -211,7 +215,7 @@ For each role, provide:
 - Why it matters to the candidate: one to two sentences on how this fits the job search.
 - Recommended action: a specific next step and, where relevant, a time window.
 - Fit: one sentence stating why this role fits the candidate's profile and the single biggest caveat or stretch (e.g. "Core Enterprise Risk leadership at a growth-stage fintech; caveat: onsite NYC with no stated remote option"). This is what lets the candidate skim-accept or skim-reject in one read.
-- Location and work arrangement: the role's location and whether it is remote, hybrid, or onsite. For roles outside the candidate's home metro area, also flag whether the company has a recent Return-to-Office (RTO) push or is remote-friendly, with the basis for that flag. This is informational and never a reason to omit the role.
+- Location and work arrangement: the role's location and whether it is remote, hybrid, or onsite. For roles outside both of the candidate's home regions (Chicago metro, or fully remote EU/UK), also flag whether the company has a recent Return-to-Office (RTO) push or is remote-friendly, with the basis for that flag. This is informational and never a reason to omit the role.
 - IPO status (if applicable): whether the company is in IPO preparation or approaching IPO within 18 months, with the basis (announced plans, S-1 filing, recent funding, public news).
 - Compensation: the pay range exactly as stated on the posting you fetched, including what it covers (base, on-target earnings, bonus, equity) if specified — e.g. "$180K–$220K base + bonus." If the posting shows no range, write "Not disclosed on posting"; you may add a market estimate ONLY if you find a dated, citable public source and label it clearly as an estimate with that source. Never invent or guess a number from general knowledge.
 - Source: direct link to the role-specific posting itself.
@@ -281,14 +285,19 @@ Do not use markdown. No inline JavaScript, no images, no tables. Keep nesting sh
                 "tools": [
                     # max_uses caps search spend at PRICE_WEB_SEARCH * max_uses
                     # per run. Fetches are billed only as input tokens.
-                    # Sized for a single-category (roles-only) scan: up to 15
-                    # watchlist-company checks, an ATS-wide sweep across 6
-                    # job-board domains with a few title variants each,
-                    # aggregator checks, and IPO-pipeline screening, plus
-                    # headroom for query reformulation. Raise this if the
-                    # per-run search count logged below is regularly hitting
-                    # the cap.
-                    {"type": "web_search_20260209", "name": "web_search", "max_uses": 60},
+                    # Sized for a two-region (Chicago + EU/UK), single-category
+                    # (roles-only) scan: up to 32 watchlist-company checks, an
+                    # ATS-wide sweep across 6 job-board domains with a few
+                    # title variants each, aggregator checks across both
+                    # regions, and IPO-pipeline screening, plus headroom for
+                    # query reformulation. Raised from 60 after the first live
+                    # run logged the IPO-pipeline pass being skipped entirely
+                    # for running out of budget ("not completed ... due to
+                    # search-budget limits" in that run's coverage notes) —
+                    # keep watching the per-run search count logged below
+                    # against this cap and raise further if it's still being
+                    # hit.
+                    {"type": "web_search_20260209", "name": "web_search", "max_uses": 80},
                     {"type": "web_fetch_20260209", "name": "web_fetch"},
                 ],
                 "messages": messages,
