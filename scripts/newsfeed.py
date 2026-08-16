@@ -220,9 +220,15 @@ For each role, provide:
 - Compensation: the pay range exactly as stated on the posting you fetched, including what it covers (base, on-target earnings, bonus, equity) if specified — e.g. "$180K–$220K base + bonus." If the posting shows no range, write "Not disclosed on posting"; you may add a market estimate ONLY if you find a dated, citable public source and label it clearly as an estimate with that source. Never invent or guess a number from general knowledge.
 - Source: direct link to the role-specific posting itself.
 
-When flagging errors and limitations, apply the following rules throughout the report.
+When flagging errors and limitations, apply the following rules throughout the report, and track them for the COVERAGE NOTES section below rather than only mentioning them inline.
 If a job posting cannot be confirmed as currently live and accepting applications by opening the posting page, exclude it entirely. Do not list unverified or stale roles even with a caveat — in this report a wrong listing is worse than an omission.
 If web search returns no results for a specific watchlist company, do not infer absence of openings. Note it as: "No confirmed results found for [company] this week — coverage may be incomplete."
+
+Distinguish WHY a posting was excluded, because the reasons carry different meaning for the candidate:
+- Confirmed dead: the fetched page explicitly shows the role is closed, filled, expired, or redirects to a generic careers/search page — real evidence the specific role is gone. Do not add these to the manual check list; the exclusion itself is the useful information.
+- Fetch could not render the content: the page returned successfully but the fetched content is empty, near-empty, or generic boilerplate with no role-specific title/description/apply-control visible — the signature of a client-side-rendered (JavaScript-heavy) page rather than a confirmed-dead one. This is a tooling limitation, not evidence the role is gone — a real, live role may be sitting behind that exact page. Track every company/platform this happens for.
+
+MANUAL CHECK LIST. Compile every company from this run that hit the "fetch could not render the content" case above into a single deduplicated list (one entry per company, even if it happened on multiple postings or platforms for that company this week). For each entry, give: the company name, the platform/domain where this happened if identifiable (e.g. Workday, Ashby, or the company's own site), and a direct link to that company's general careers/job-search landing page (not the specific unrenderable posting, since that's exactly the link that couldn't be verified) so the candidate can check it by hand. If no companies hit this case this week, state "No fetch-rendering issues this week" rather than omitting the section.
 
 FORMAT AND MARKUP
 
@@ -236,6 +242,7 @@ Structure:
 - Plain prose in <p> tags; lists in <ul>/<li>. Use <a href="…"> for every source link.
 - For the three highest-priority roles at the very top, wrap that whole block in <div class="highlights">…</div>.
 - Render the two tier sub-headers as <h3 class="tier">Strong fits</h3> and <h3 class="tier">Broader — worth a look</h3>, each followed by that tier's item divs.
+- After the two tiers, add a <h2> "COVERAGE NOTES" section. Within it, use an <h3 class="tier">Manual check list</h3> sub-header followed by a <ul> where each <li> is one company (name, platform if known, and an <a href="…"> to its general careers page). Any other coverage notes (no-results-found companies, general caveats) go in plain <p>/<ul> content in this same COVERAGE NOTES section, above or below the manual check list as makes sense.
 
 Do not use markdown. No inline JavaScript, no images, no tables. Keep nesting shallow and clean.
 """
