@@ -1,5 +1,7 @@
 import anthropic
 import httpx
+import json
+import hashlib
 import nh3
 import re
 import smtplib
@@ -132,6 +134,135 @@ MAX_PAUSE_CONTINUATIONS = 12
 # only retries failed request setup — and a dropped stream loses the whole
 # in-flight report, so the only recovery is to start the scan over.
 STREAM_RETRIES = 2
+
+
+# --- Cross-run deduplication -------------------------------------------------
+#
+# The model re-verifies every role fresh on every run — that behavior is
+# unchanged. This layer runs AFTER the model has produced its report and only
+# affects presentation: a role the candidate has already seen in a previous
+# report gets collapsed to a one-line "still open" note instead of repeating
+# its full write-up, while a genuinely new role keeps full detail exactly as
+# before. This still confirms liveness every week; it just stops re-showing
+# the same paragraph for a role that's been open for six weeks running.
+#
+# PRIVACY NOTE: this repo is public, and the rest of this script deliberately
+# persists nothing (see the INVARIANT comment near __main__). Making dedup
+# work at all requires SOME state to survive between runs, so this is a
+# narrow, intentional exception — but we store only a one-way hash of each
+# role's URL plus a first-seen date, never the plaintext company, title, or
+# URL. A hash lets the script recognize "I've seen this exact URL before"
+# without leaving a human-readable history of the candidate's search in git.
+STATE_FILE = "state/seen_roles.json"
+
+ITEM_RE = re.compile(r'<div class="item">.*?</div>', re.DOTALL)
+SOURCE_HREF_RE = re.compile(r'Source:.*?href="([^"]+)"', re.DOTALL)
+TITLE_RE = re.compile(r'<h3[^>]*>(.*?)</h3>', re.DOTALL)
+
+
+def hash_url(url):
+    return hashlib.sha256(url.strip().encode("utf-8")).hexdigest()
+
+
+def load_seen_roles():
+    """Return {url_hash: first_seen_date} from disk, or {} if absent/corrupt.
+
+    Corrupt or missing state is never fatal — worst case, dedup silently does
+    nothing this run (every role looks "new" again), which is a presentation
+    regression, not a broken report.
+    """
+    try:
+        with open(STATE_FILE, "r", encoding="utf-8") as f:
+            entries = json.load(f)
+        return {e["h"]: e["first_seen"] for e in entries}
+    except FileNotFoundError:
+        return {}
+    except (json.JSONDecodeError, KeyError, TypeError) as exc:
+        print(
+            f"State file unreadable ({type(exc).__name__}); "
+            "proceeding without cross-run dedup this run.",
+            file=sys.stderr,
+        )
+        return {}
+
+
+def save_seen_roles(state):
+    """Write {url_hash: first_seen_date} back to disk as a sorted JSON list.
+
+    Sorted by hash for a stable, minimal diff each week (only genuinely added
+    or dropped entries change). Entries not present in this run's confirmed
+    set are simply omitted here, which naturally prunes roles that closed or
+    weren't rediscovered — no separate age-based cleanup needed.
+    """
+    os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
+    entries = [
+        {"h": h, "first_seen": first_seen}
+        for h, first_seen in sorted(state.items())
+    ]
+    with open(STATE_FILE, "w", encoding="utf-8") as f:
+        json.dump(entries, f, indent=2)
+        f.write("\n")
+
+
+def dedupe_against_history(report_html):
+    """Collapse previously-seen roles to a one-line note; keep new ones full.
+
+    Operates on the already-sanitized report fragment. Every <div class="item">
+    block (including any duplicated into the highlights box) is checked by its
+    Source link's URL hash against the persisted state. A match means the
+    candidate has already seen this exact posting in a prior report, so the
+    full item is removed from its tier and a compact line is appended in a new
+    "STILL OPEN — NO CHANGE" section instead. A miss means it's new: left in
+    place untouched, and recorded for next time.
+
+    Wrapped in a broad try/except by the caller — a bug here should degrade to
+    "no dedup this run," never block the report from sending.
+    """
+    seen_state = load_seen_roles()
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    new_state = {}
+    repeat_entries = []
+
+    def replace_item(match):
+        item_html = match.group(0)
+        href_match = SOURCE_HREF_RE.search(item_html)
+        if not href_match:
+            # No identifiable source link — can't dedupe it, leave as-is and
+            # don't track it (better to show an extra item than lose one).
+            return item_html
+
+        url = href_match.group(1).strip()
+        h = hash_url(url)
+        title_match = TITLE_RE.search(item_html)
+        title_text = title_match.group(1).strip() if title_match else "Untitled role"
+
+        if h in seen_state:
+            new_state[h] = seen_state[h]  # carry forward the original date
+            repeat_entries.append((title_text, url, seen_state[h]))
+            return ""  # dropped from its tier; listed compactly below instead
+        else:
+            new_state[h] = today_str
+            return item_html  # genuinely new — keep in place, full detail
+
+    deduped_html = ITEM_RE.sub(replace_item, report_html)
+
+    if repeat_entries:
+        compact_items = "\n".join(
+            f'<li><a href="{url}">{title}</a> — still open, first seen {first_seen}</li>'
+            for title, url, first_seen in repeat_entries
+        )
+        deduped_html += (
+            "<h2>STILL OPEN — NO CHANGE</h2>"
+            "<p>These roles appeared in a previous report and were re-verified "
+            "live again this run; full details aren't repeated since nothing "
+            "changed. Click through for the full posting.</p>"
+            f"<ul>{compact_items}</ul>"
+        )
+
+    save_seen_roles(new_state)
+    # Defense in depth: the pieces above are all built from already-sanitized
+    # fragments, but a second pass is cheap and free of surprises.
+    return sanitize_html(deduped_html)
 
 
 def get_newsfeed():
@@ -400,6 +531,20 @@ Do not use markdown. No inline JavaScript, no images, no tables. Keep nesting sh
     report = sanitize_html(full_text[match.start():])
     if not report.strip():
         raise ValueError("Report was empty after sanitization; nothing to send.")
+
+    try:
+        report = dedupe_against_history(report)
+    except Exception as exc:
+        # Dedup is a presentation enhancement, not core to the report's
+        # validity — a bug here should never block a good report from
+        # sending. Fall back to the undeduped (but still fully sanitized and
+        # valid) report and let the run proceed.
+        print(
+            f"Dedup step failed ({type(exc).__name__}); sending report "
+            "without cross-run dedup this run.",
+            file=sys.stderr,
+        )
+
     return report
 
 # Dark, flat "sage" theme matching the shared design system. Five-color palette:
@@ -598,10 +743,15 @@ if __name__ == "__main__":
         report_fragment = get_newsfeed()
         date_str = datetime.now(timezone.utc).strftime("%B %d, %Y")
         newsfeed = build_html_email(report_fragment, date_str)
-        # INVARIANT: this repo is public. Report content must never reach any
-        # publicly readable surface — no uploaded run outputs, no workflow logs,
-        # no committed files. A paid run is protected by retrying the send, not
-        # by writing the report anywhere durable. Do not add persistence here.
+        # INVARIANT: this repo is public. Report CONTENT must never reach any
+        # publicly readable surface — no uploaded run outputs, no workflow
+        # logs, no committed report text. A paid run is protected by retrying
+        # the send, not by writing the report anywhere durable.
+        # Exception: get_newsfeed() writes state/seen_roles.json locally (see
+        # dedupe_against_history above) — a small set of URL hashes and dates,
+        # never plaintext company/title/URL/report content. The workflow YAML
+        # commits that file back to the repo after a successful run. Don't add
+        # any other persistence beyond that one narrow, deliberate exception.
         send_with_retry(newsfeed)
     except Exception as exc:
         # Exit non-zero so the GitHub Action surfaces the failure instead of
