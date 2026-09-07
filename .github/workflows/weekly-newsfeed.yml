@@ -6,7 +6,7 @@ on:
   workflow_dispatch:        # lets you trigger it manually to test
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   send-newsfeed:
@@ -37,3 +37,21 @@ jobs:
           # details never live in the repo; falls back to a generic example.
           CANDIDATE_PROFILE: ${{ secrets.CANDIDATE_PROFILE }}
         run: python scripts/newsfeed.py
+
+      # Only reached if the script above exited 0 (i.e. the report actually
+      # sent) — a failed run should never mark roles as "seen," or a role the
+      # candidate never actually received would silently disappear next week.
+      # Commits only a small set of URL hashes and dates (see the dedup
+      # section in scripts/newsfeed.py) — never plaintext company names,
+      # titles, URLs, or report content, since this repo is public.
+      - name: Commit dedup state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add state/
+          if git diff --staged --quiet; then
+            echo "No state changes to commit."
+          else
+            git commit -m "Update seen-roles dedup state [skip ci]"
+            git push
+          fi
